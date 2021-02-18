@@ -1,23 +1,63 @@
 # coding=utf-8
-"""
-FTP常用操作
-"""
-import sys
 from ftplib import FTP
-import os
+import logging.config
 
-def getbinary(ftp, filename, outfile=None):
-    if outfile is None:
-       outfile = sys.stdout
-    ftp.retrbinary("RETR " + filename, outfile.write)
+# 文件服务器参数
+ftp_param = {
+    'host': '10.132.203.206',
+    'port': 21,
+    'user': 'zonghs',
+    'pwd': 'zonghs123',
+    'points_dir': 'comm/cust_point/',
+    'desDir': '/oracle_data9/arc_data/SGI1/2016年油套管检测归档/工程所借用空间/2019工作'
+}
 
-host = "10.132.203.206"
-username = "zonghs"
-password = "zonghs123"
-port = 21
+bufsize = 1024  # 缓冲区大小
 
+logger = logging.getLogger(__name__)
+
+# 设置变量
 ftp = FTP()
-ftp.connect(host=host, port=port)  # 连接ftp
-ftp.login(username, password)  # 登录ftp
-print(ftp.getwelcome())
-getbinary(ftp, "welcome.msg")
+
+# 连接的ftp sever和端口
+ftp.connect(ftp_param['host'], ftp_param['port'])
+
+# 登录
+ftp.login(ftp_param['user'], ftp_param['pwd'])
+
+# 打印欢迎信息
+logger.debug(ftp.getwelcome())
+
+# 进入远程目录
+remotepath = ftp_param['desDir']
+ftp.cwd(remotepath)
+
+filenames = ftp.nlst()
+# 需要下载的文件
+for filename in filenames:
+    if '.xls' in filename or '.doc' in filename:
+        # 以写的模式在本地打开文件
+        file_handle = open(filename, "wb").write
+
+        # 接收服务器上文件并写入本地文件
+        ftp.retrbinary("RETR " + filename, file_handle, bufsize)
+
+    try:
+        ftp.cwd(filename)
+    except:
+        try:
+            ftp.cwd(filename)
+        except:
+            # 以写的模式在本地打开文件
+            file_handle = open(filename, "wb").write
+            # 接收服务器上文件并写入本地文件
+            ftp.retrbinary("RETR " + filename, file_handle, bufsize)
+            try:
+                ftp.cwd(filename)
+                # 以写的模式在本地打开文件
+                file_handle = open(filename, "wb").write
+                # 接收服务器上文件并写入本地文件
+                ftp.retrbinary("RETR " + filename, file_handle, bufsize)
+
+# 退出ftp
+ftp.quit()
