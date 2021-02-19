@@ -9,7 +9,7 @@ ftp_param = {
     'user': 'zonghs',
     'pwd': 'zonghs123',
     'points_dir': 'comm/cust_point/',
-    'desDir': '/oracle_data9/arc_data/SGI1/2016年油套管检测归档/工程所借用空间/2019工作'
+    'desDir': '/oracle_data9/arc_data/SGI1/2016年油套管检测归档/下载测试'
 }
 
 bufsize = 1024  # 缓冲区大小
@@ -35,29 +35,11 @@ ftp.cwd(remotepath)
 filenames = ftp.nlst()
 # 需要下载的文件
 for filename in filenames:
-    if '.xls' in filename or '.doc' in filename:
-        # 以写的模式在本地打开文件
-        file_handle = open(filename, "wb").write
+    # 以写的模式在本地打开文件
+    file_handle = open(filename, "wb").write
 
-        # 接收服务器上文件并写入本地文件
-        ftp.retrbinary("RETR " + filename, file_handle, bufsize)
-
-    try:
-        ftp.cwd(filename)
-    except:
-        try:
-            ftp.cwd(filename)
-        except:
-            # 以写的模式在本地打开文件
-            file_handle = open(filename, "wb").write
-            # 接收服务器上文件并写入本地文件
-            ftp.retrbinary("RETR " + filename, file_handle, bufsize)
-            try:
-                ftp.cwd(filename)
-                # 以写的模式在本地打开文件
-                file_handle = open(filename, "wb").write
-                # 接收服务器上文件并写入本地文件
-                ftp.retrbinary("RETR " + filename, file_handle, bufsize)
+    # 接收服务器上文件并写入本地文件
+    ftp.retrbinary("RETR " + filename, file_handle, bufsize)
 
 # 退出ftp
 ftp.quit()

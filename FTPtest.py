@@ -15,7 +15,7 @@ class myFtp:
         self.ftp.login(user, passwd)
         print(self.ftp.welcome)
 
-    def DownLoadFile(self, LocalFile, RemoteFile):  # 下载当个文件
+    def DownLoadFile(self, LocalFile, RemoteFile):  # 下载单个文件
         file_handler = open(LocalFile, 'wb')
         print(file_handler)
         # self.ftp.retrbinary("RETR %s" % (RemoteFile), file_handler.write)#接收服务器上文件并写入本地文件
@@ -33,12 +33,24 @@ class myFtp:
         for file in RemoteNames:
             Local = os.path.join(LocalDir, file)
             print(self.ftp.nlst(file))
-            if file.find(".") == -1:
+            if self.ftp.nlst(file)[0] != file: # 取nlst后不为本身，说明为目录(有瑕疵)
                 if not os.path.exists(Local):
                     os.makedirs(Local)
-                self.DownLoadFileTree(Local, file)
+                try:
+                    print(self.ftp.nlst(file))
+                    if self.ftp.nlst(file) == []: # 空文件夹情况
+                        print('**********', file)
+                        print(self.ftp.pwd())
+                        # self.ftp.cwd("..")
+                    else:
+                        self.DownLoadFileTree(Local, file)
+                except:
+                    print('Not a directory')
             else:
-                self.DownLoadFile(Local, file)
+                try:
+                    self.DownLoadFile(Local, file)
+                except:
+                    print('Error downloading a file')
         self.ftp.cwd("..")
         return
 
@@ -49,6 +61,5 @@ class myFtp:
 if __name__ == "__main__":
     ftp = myFtp('10.132.203.206')
     ftp.Login('zonghs', 'zonghs123')
-    ftp.DownLoadFileTree('./Software', '/oracle_data9/arc_data/SGI1/2016年油套管检测归档/工程测井工作助手最新版本')
-    ftp.close()
-    print("ok!")
+    ftp.DownLoadFileTree('./Software', '/oracle_data9/arc_data/SGI1/2016年油套管检测归档/下载测试')
+    print("更新完毕。")
